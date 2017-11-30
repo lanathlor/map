@@ -1,31 +1,55 @@
 import React, { Component } from 'react';
-import {Grid, Card, Image, Icon} from 'semantic-ui-react';
+import {Grid, Card, Icon} from 'semantic-ui-react';
+import firebase from 'firebase';
+var config = {
+	apiKey: "AIzaSyCLVpmJeXOD2_q3XedlpEaGGpSog0kQjBM",
+	authDomain: "monkeymoneyfrance.firebaseapp.com",
+	databaseURL: "https://monkeymoneyfrance.firebaseio.com",
+	projectId: "monkeymoneyfrance",
+	storageBucket: "monkeymoneyfrance.appspot.com",
+	messagingSenderId: "451894989456"
+};
+firebase.initializeApp(config);
 
 class Band extends Component{
+	constructor(props){
+		super(props)
+		this.state = {
+			info:false,
+			node:false
+		}
+		this.i = 0;
+	}
 	componentWillMount(){
-		console.log("mount");
+		firebase.database().ref(this.props.info["node"]).once("value", function(snap){
+			this.i++;
+			this.setState({node:snap.val()});
+		}.bind(this))
 	}
 	componentWillUpdate(){
-		console.log("update");
+	}
+	componentWillReceiveProps(props){
+		firebase.database().ref(props.info["node"]).once("value", function(snap){
+			this.i++;
+			this.setState({node:snap.val()});
+		}.bind(this))
 	}
 	render(){
-		console.log("render");
-		if (!this.props.info){return null}
+		if (!this.props.info || !this.state.node){return null}
+		this.i++;
 		return (
- 			<Grid>
-				<Grid.Row>
-					<Grid.Column width={'16'} style={{
-						backgroundColor:'blue'
-					}}>
-						<Card fluid={true}>
-							<Image src=''/>
-							<Card.Content>
-								<Card.Header>test</Card.Header>
-								<Card.Meta>test</Card.Meta>
-								<Card.Description>test</Card.Description>
-							</Card.Content>
-  						</Card>
-						11-18<br/>11-19<br/>11-20<br/>{this.props.info["node"]}
+ 			<Grid key={this.i} >
+				<Grid.Row key={this.i} >
+					<Grid.Column width={'16'} key={this.i}>
+						<Card 
+							fluid={true}
+							image={this.state.node["image"]}
+							header={this.state.node["header"]}
+							meta={this.state.node["meta"]}
+							description={this.state.node["description"]}
+							extra={<Icon name='close' onClick={() => this.props.fct()} size={'big'}/>}
+							key={this.i}
+						/>
 					</Grid.Column>
 				</Grid.Row>
 			</Grid>

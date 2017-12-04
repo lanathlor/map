@@ -8,16 +8,7 @@ import Picker from './Picker.js'
 
 const Leaflet = window.L;
 
-var most_tag = ["trader", "event"];
-
-var pop_tags = {
-	trader:["foo", "test"],
-	event:["bar", "test1"]
-}
-
-var meta = {
-	node:"/map/info_marker/"
-}
+var meta;
 var ptr;
 
 function getFilter(filter, tags){
@@ -49,31 +40,33 @@ class Mapper extends Component{
 		this.time = Date.now(); // time at construction. used for test.
 	}
 	componentWillMount(){
-		firebase.database().ref("/map/tracker").once("value", function(snap){
-			var pos = [];
-			var info = [];
-			var i = 0;
-			var val = snap.val();
+		firebase.database().ref("/map/meta").once("value", function(snapshot){
+			meta = snapshot.val();
+			firebase.database().ref("/map/tracker").once("value", function(snap){
+				var pos = [];
+				var info = [];
+				var i = 0;
+				var j = 0;
+				var val = snap.val();
+				var keepTag = meta["keepInTag"].split("/");
 
-			for (var key in val){
-				pos[i] = [];
-				info[i] = [];
-				pos[i][0] = val[key]["lat"];
-				pos[i][1] = val[key]["lng"];
-				info[i]["node"] = meta["node"] + val[key]["node"];
-				info[i]["tag"] = val[key]["tag"];
-				info[i]["tag"]["name"] = val[key]["name"];
-				i++;
-			}
-			while (i <= 0){
-				pos[i] = [];
-				info[i] = [];
-				pos[i][0] = pos[i - 1][0] + 0.00001;
-				pos[i][1] = pos[i - 1][1];
-				info[i] = info[i - 1];
-				i++;
-			}
-			this.setState({position:pos, info:info});
+				for (var key in val){
+					pos[i] = [];
+					info[i] = [];
+					pos[i][0] = val[key]["lat"];
+					pos[i][1] = val[key]["lng"];
+					info[i]["node"] = meta["node"] + val[key]["node"];
+					info[i]["tag"] = val[key]["tag"];
+					while (keepTag[j]){
+						info[i]["tag"][keepTag[j]] = val[key][keepTag[j]];
+						j++;
+					}
+					j = 0;
+					info[i]["key"] = key;
+					i++;
+				}
+				this.setState({position:pos, info:info});
+			}.bind(this));
 		}.bind(this));
 	}
 	MoveOnMarker(pos, info){
@@ -102,7 +95,6 @@ class Mapper extends Component{
 		ptr.setState({filter:search, OpenInfo:false, clickedMarker:false, inputValue:search, clickTag:state});
 	}
 	goToName(pos, info){
-		console.log(info);
 		ptr.makeAutoSearch(info["tag"]["name"], false);
 		ptr.MoveOnMarker(ptr.state.position[pos], info);
 	}
@@ -110,12 +102,7 @@ class Mapper extends Component{
 		this.setState({filter:'',clickedMarker:1,inputValue:'', clickTag:false})
 	}
 	getTag(){
-		if (this.state.clickTag && pop_tags[this.state.inputValue]){
-			return (pop_tags[this.state.inputValue]);
-		} else if (this.state.clickTag){
-			return ([]);
-		}
-		return (most_tag)
+		return (meta["pop_tags"])
 	}
 	render(){
 		var pos = this.state.position;

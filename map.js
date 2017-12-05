@@ -31,7 +31,8 @@ class Mapper extends Component{
 			OpenInfo:false, // false to hide the marker panel. true to display him.
 			clickedMarker:1, //track if a marker was clicked. 1 by default. false to open the search panel, info to open the marker panel
 			inputValue: '', // this is equal to the text in the search bar.
-			clickTag:false //false until user click on a orange tag. return to false on : click on blue, click on green, click on map
+			clickTag:false, //false until user click on a orange tag. return to false on : click on blue, click on green, click on map
+			key:0 // the picker will display marker with these in the tag. reserved for populare key / catégorie.
 		}
 		this.position = false;
 		this.col = '16'; // the number of col taken by the map. in this version, stay at 16
@@ -91,8 +92,8 @@ class Mapper extends Component{
 			return (null); // dont close the marker panel if open.
 		ptr.setState({OpenInfo:false,clickedMarker:false});
 	}
-	makeAutoSearch(search, state){
-		ptr.setState({filter:search, OpenInfo:false, clickedMarker:false, inputValue:search, clickTag:state});
+	makeAutoSearch(search, state, key){
+		ptr.setState({filter:search, OpenInfo:false, clickedMarker:false, inputValue:search, clickTag:state, key:key});
 	}
 	goToName(pos, info){
 		ptr.makeAutoSearch(info["tag"]["name"], false);
@@ -138,6 +139,7 @@ class Mapper extends Component{
 							filter={this.state.filter}
 							click={this.state.clickTag}
 							mark={info}
+							categorie={this.state.key}
 							close={() => this.mapMove()}
 							fct={this.makeAutoSearch}
 							goName={this.goToName}
